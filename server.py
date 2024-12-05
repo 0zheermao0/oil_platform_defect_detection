@@ -1,15 +1,15 @@
 import os
 import cv2
-import gradio as gr
-import numpy as np
 from typing import List, Optional
 from predict import process_images as process_images_by_yolo
 from predict import yolo_model
 from os.path import dirname
-import time
+import gradio as gr
+from ultralytics import YOLO
+from moviepy.editor import VideoFileClip
+
 
 project_name = "zhy_predict"
-
 def get_default_output_path() -> str:
     """
     获取默认输出文件夹路径
@@ -21,6 +21,38 @@ def get_default_output_path() -> str:
     default_out_path = os.path.join(current_dir, project_name)
     os.makedirs(default_out_path, exist_ok=True)
     return default_out_path
+
+
+def convert_to_mp4(input_path):
+    # 读取 AVI 文件
+    clip = VideoFileClip(input_path)
+
+    # 将视频转换为 MP4 格式
+    output_path = input_path.replace(".avi", ".mp4")
+    clip.write_videofile(output_path)
+    clip.close()  # 释放资源
+    return output_path
+
+def process_video(video_file: str) -> str:
+    """
+    使用 ultralytics 处理视频文件并保存输出
+
+    Args:
+        video_file (str): 上传的视频文件路径
+
+    Returns:
+        str: 处理后的视频文件路径
+    """
+    model = YOLO("best.pt")  # 使用适当的模型文件路径
+
+    # 使用模型处理视频
+    result = model(video_file, save=True, project=get_default_output_path(), name="output_video")  # 处理并保存
+    output_dir = get_default_output_path()
+    os.makedirs(output_dir,exist_ok=True)
+    output_file = os.path.join(output_dir,"output_video",video_file.split('\\')[-1].split('.')[0]+'.avi')
+    output_file_new = convert_to_mp4(output_file)
+
+    return output_file_new  # 返回处理后的视频文件路径
 
 def process_images(input_files: List[str], output_folder: Optional[str] = get_default_output_path()) -> List[str]:
     """
@@ -65,8 +97,6 @@ def video_stream(rtsp_url: str):
         # time.sleep(0.01)  # 控制帧率
 
     cap.release()
-
-
 
 def create_gradio_interface():
     """
@@ -135,11 +165,20 @@ def create_gradio_interface():
                 queue=True
             )
 
+        # 本地视频处理选项卡
+        with gr.Tab("本地视频处理"):
+            video_input = gr.File(label="上传视频文件", type="filepath", file_types=[".mp4"])
+            output_video = gr.Video(label="处理后的视频流")  # 使用 Video 组件
+            print(output_video)
+            video_input.change(process_video, inputs=video_input, outputs=output_video)
+            print(output_video)
+
     return demo
 
 def main():
     demo = create_gradio_interface()
     demo.launch()
+
 
 if __name__ == "__main__":
     main()
