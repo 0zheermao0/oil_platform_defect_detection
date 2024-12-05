@@ -1,0 +1,6 @@
+train: ./images
+val: ./images
+test: ./images
+
+nc: 3
+names: ['保温层破损', '凹陷异常', '腐蚀']
