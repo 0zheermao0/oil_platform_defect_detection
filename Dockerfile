@@ -9,10 +9,6 @@ RUN apt-get update && apt-get install -y \
 RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 RUN pip3 install opencv-python-headless ultralytics gradio
 
-# Set up a user
-# RUN useradd -m joey
-# USER joey
-# WORKDIR /home/joey
 WORKDIR /root
 COPY . .
 COPY ./Arial.Unicode.ttf /root/.config/Ultralytics/Arial.Unicode.ttf
