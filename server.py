@@ -79,22 +79,27 @@ def process_images(input_files: List[str], output_folder: Optional[str] = get_de
     return processed_images
 
 def video_stream(rtsp_url: str):
+    target_fps = 20
+    delay_between_frames = 1.0 / target_fps
     cap = cv2.VideoCapture(rtsp_url)  # 替换为你的 RTSP URL
     if not cap.isOpened():
         raise ValueError("无法打开视频流")
     
     while True:
+        start_time = time.time()
         ret, frame = cap.read()
         if not ret:
             break
         # 转换 BGR 到 RGB
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = yolo_model(frame)[0].plot()
-        cv2.imshow('label', frame)
-        if cv2.waitKey(1) & 0xFF==ord('q'):
-            break
+        # cv2.imshow('label', frame)
+        # if cv2.waitKey(1) & 0xFF==ord('q'):
+        #     break
         yield frame
-        # time.sleep(0.01)  # 控制帧率
+        elapsed_time = time.time() - start_time
+        time.sleep(max(0, delay_between_frames - elapsed_time))
+        # time.sleep(0.1)  # 控制帧率
 
     cap.release()
 
@@ -144,7 +149,7 @@ def create_gradio_interface():
             stream_btn1.click(
                 fn=video_stream,
                 inputs=[rtsp_inputs1],
-                # outputs=[video_outputs1],
+                outputs=[video_outputs1],
                 queue=True
             )
 
@@ -161,7 +166,7 @@ def create_gradio_interface():
             stream_btn2.click(
                 fn=video_stream,
                 inputs=[rtsp_inputs2],
-                # outputs=[video_outputs2],
+                outputs=[video_outputs2],
                 queue=True
             )
 
