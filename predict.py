@@ -3,7 +3,7 @@ import torch
 from ultralytics import YOLO
 from typing import List, Optional
 
-model_path = "best.pt"
+model_path = "./cfg/best.pt"
 yolo_model = YOLO(model_path)
 
 def process_frame():

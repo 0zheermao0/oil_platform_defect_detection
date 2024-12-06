@@ -11,7 +11,7 @@ RUN pip3 install opencv-python-headless ultralytics gradio moviepy==1.0.3
 
 WORKDIR /root
 COPY . .
-COPY ./Arial.Unicode.ttf /root/.config/Ultralytics/Arial.Unicode.ttf
+COPY ./cfg/Arial.Unicode.ttf /root/.config/Ultralytics/Arial.Unicode.ttf
 
 # Default command
 CMD ["python3", "server.py"]

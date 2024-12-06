@@ -45,7 +45,7 @@ def process_video(video_file: str) -> str:
     Returns:
         str: 处理后的视频文件路径
     """
-    model = YOLO("best.pt")  # 使用适当的模型文件路径
+    model = YOLO("./cfg/best.pt")  # 使用适当的模型文件路径
 
     # 使用模型处理视频
     output_dir = get_default_output_path()
@@ -82,7 +82,7 @@ def process_images(input_files: List[str], output_folder: Optional[str] = get_de
 
     # 存储处理后图片路径的列表
     source_dir = dirname(input_files[0])
-    processed_images = process_images_by_yolo(model_path="best.pt", source_dir=input_files, output_dir=output_folder)
+    processed_images = process_images_by_yolo(model_path="./cfg/best.pt", source_dir=input_files, output_dir=output_folder)
 
     return processed_images
 
