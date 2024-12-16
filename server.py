@@ -5,12 +5,11 @@ from predict import process_images as process_images_by_yolo
 from predict import yolo_model
 from os.path import dirname
 import gradio as gr
-from ultralytics import YOLO
-from moviepy.editor import VideoFileClip
 import time
 
-
 project_name = "zhy_predict"
+
+
 def get_default_output_path() -> str:
     """
     获取默认输出文件夹路径
@@ -24,43 +23,7 @@ def get_default_output_path() -> str:
     return default_out_path
 
 
-def convert_to_mp4(input_path):
-    # 读取 AVI 文件
-    clip = VideoFileClip(input_path)
-
-    # 将视频转换为 MP4 格式
-    output_path = input_path.replace(".avi", ".mp4")
-    print(f"convert input path is {input_path}, output path is {output_path}")
-    clip.write_videofile(output_path)
-    clip.close()  # 释放资源
-    return output_path
-
 def process_video(video_file: str) -> str:
-    # """
-    # 使用 ultralytics 处理视频文件并保存输出
-    #
-    # Args:
-    #     video_file (str): 上传的视频文件路径
-    #
-    # Returns:
-    #     str: 处理后的视频文件路径
-    # """
-    # model = YOLO("./cfg/best.pt")  # 使用适当的模型文件路径
-    #
-    # # 使用模型处理视频
-    # output_dir = get_default_output_path()
-    # # result = model(video_file, save=True, project=output_dir, name="output_video", exist_ok=True, show=True)  # 处理并保存
-    # result = model(video_file, save=True, project=output_dir, name="output_video", exist_ok=True)  # 处理并保存
-    # print(f"video file name is: {video_file}")
-    # output_file = os.path.join(output_dir,"output_video",video_file.split('/')[-1].split('.')[0]+'.avi')
-    # # 将 AVI 文件转换为 MP4
-    # output_file_new = convert_to_mp4(output_file)
-    #
-    # # print(f"output dir is {output_dir}")
-    # # print(f"处理后的视频文件保存在: {output_file_new}")
-    # # cv2.destroyAllWindows()
-    #
-    # return output_file_new  # 返回处理后的视频文件路径
     cap = cv2.VideoCapture(video_file)
     if not cap.isOpened():
         raise ValueError("无法打开视频文件")
@@ -68,10 +31,12 @@ def process_video(video_file: str) -> str:
     while True:
         success, frame = cap.read()
         if success:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = yolo_model.track(frame, persist=True)
             frame = results[0].plot()
             yield frame
     cap.release()
+
 
 def process_images(input_files: List[str], output_folder: Optional[str] = get_default_output_path()) -> List[str]:
     """
@@ -97,13 +62,14 @@ def process_images(input_files: List[str], output_folder: Optional[str] = get_de
 
     return processed_images
 
+
 def video_stream(rtsp_url: str):
     target_fps = 20
     delay_between_frames = 1.0 / target_fps
     cap = cv2.VideoCapture(rtsp_url)  # 替换为你的 RTSP URL
     if not cap.isOpened():
         raise ValueError("无法打开视频流")
-    
+
     while True:
         start_time = time.time()
         ret, frame = cap.read()
@@ -121,6 +87,7 @@ def video_stream(rtsp_url: str):
         # time.sleep(0.1)  # 控制帧率
 
     cap.release()
+
 
 def create_gradio_interface():
     """
@@ -162,7 +129,6 @@ def create_gradio_interface():
                 )
                 stream_btn1 = gr.Button("开始流处理")
 
-            
             video_outputs1 = gr.Image(label="处理后的视频流", streaming=True)
 
             stream_btn1.click(
@@ -179,7 +145,6 @@ def create_gradio_interface():
                 )
                 stream_btn2 = gr.Button("开始流处理")
 
-            
             video_outputs2 = gr.Image(label="处理后的视频流", streaming=True)
 
             stream_btn2.click(
@@ -192,9 +157,6 @@ def create_gradio_interface():
         # 本地视频处理选项卡
         with gr.Tab("本地视频处理"):
             video_input = gr.File(label="上传视频文件", type="filepath", file_types=[".mp4"])
-            # output_video = gr.Video(label="处理后的视频流")  # 使用 Video 组件
-            # video_input.change(process_video, inputs=video_input, outputs=output_video)
-            # video_input.change(process_video, inputs=video_input)
 
             output_video = gr.Image(label="处理后的视频流", streaming=True)
             video_input.change(
@@ -204,8 +166,8 @@ def create_gradio_interface():
                 queue=True
             )
 
-
     return demo
+
 
 def main():
     demo = create_gradio_interface()
@@ -214,4 +176,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
