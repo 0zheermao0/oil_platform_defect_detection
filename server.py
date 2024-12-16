@@ -35,6 +35,8 @@ def process_video(video_file: str) -> str:
             results = yolo_model.track(frame, persist=True)
             frame = results[0].plot()
             yield frame
+        else:
+            break
     cap.release()
 
 
